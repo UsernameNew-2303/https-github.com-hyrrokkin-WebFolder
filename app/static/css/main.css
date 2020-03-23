@@ -1,0 +1,305 @@
+#search_container {
+    position: relative;
+    padding: 0 0 0 0px;
+    margin: 0 0px;
+    background: #ddd;
+    direction: ltr;
+    width: 35%;
+    height: 44px;
+}
+
+#search_input {
+    margin: 0;
+    padding-right: 35px;
+    padding-left: 5px;
+    width: 100%;
+    height: 100%;
+    font-family: 'Helvetica', Arial, Lucida Grande, sans-serif;
+    font-size: 16px;
+}
+
+#search_img {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: 30px;
+    height: 30px;
+}
+
+#control_line {
+    position: relative;
+    border-style: solid;
+    height: 60px;
+    width: 100%;
+    padding: 5px;
+}
+
+#control_button_line {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 60%;
+    background-color: transparent;
+    height: 44px;
+    float: right;
+}
+
+.btn {
+  border: none;
+  outline: none;
+  padding: 12px 16px;
+  background-color: #f1f1f1;
+  cursor: pointer;
+  background-color: white;
+}
+
+.btn:hover {
+  background-color: #ddd;
+}
+
+.btn.active {
+  background-color: #666;
+  color: white;
+}
+
+.list_item {
+    text-align: left;
+    line-height: 60px;
+    display: block;
+    width: 100%;
+    height: 60px;
+    border-style: solid;
+}
+/*
+th{
+    width:200px;
+    height:20px;
+    border:1px solid;
+}
+td{
+    width:200px;
+    height:20px;
+    border:1px solid;
+}
+
+tbody tr:hover{
+    background-color: red;
+}*/
+
+
+table {
+  border-spacing: 0;
+  width: 100%;
+  border: 1px solid #ddd;
+}
+
+th, td {
+  /*text-align: left;*/
+  height: 50px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/*
+td {
+  text-align: left;
+  height: 50px;
+}
+
+th {
+  text-align: left;
+  height: 50px;
+  background-color: blue;
+}
+*/
+th {
+    /*font-size: 12pt;*/
+    background-color: rgb(32, 41, 50);
+    color: #fff;
+    border: 1px solid rgb(32, 41, 50);
+    font-weight: bold;
+	padding: 10px 15px;
+	cursor: pointer;
+}
+
+th:hover {
+    transition: 0.1s all;
+	border: none;
+	border: 4px solid white;
+	opacity: 0.7;
+	color: white;
+}
+
+th:active {
+    opacity: 0.5;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.sort_icon {
+    width: 14px;
+    height: 8px;
+    margin-left: 10px;
+}
+
+.dir_item:hover {
+    background-color: rgb(237, 221, 89);
+    color: rgb(32, 41, 50);
+    opacity: 0.8;
+}
+
+.selected_dir_row {
+    background-color: yellow;
+}
+
+tr:nth-child(even).selected_dir_row {
+  background-color: yellow;
+}
+
+.dir_item_icon {
+    width: 24px;
+    height: 21px;
+    vertical-align: bottom;
+    margin-right: 10px;
+}
+
+.dir_item_icon {
+    width: 24px;
+    height: 21px;
+    vertical-align: bottom;
+    margin-right: 10px;
+}
+
+.file_item_icon {
+    width: 24px;
+    height: 30px;
+    vertical-align: bottom;
+    margin-right: 10px;
+}
+
+.prev_dir_icon {
+    width: 24px;
+    height: 30px;
+    vertical-align: bottom;
+    margin-right: 10px;
+}
+
+.files_button {
+    width: 44px;
+    height: 44px;
+}
+
+.files_button:hover {
+    opacity: 0.7;
+}
+
+.files_button:active {
+    opacity: 0.5;
+}
+
+#upload_files_button {
+    display: none;
+}
+
+#upload_files_button_image_label {
+    position: absolute;
+    right: 50px;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+#remove_button {
+    position: absolute;
+    right: 150px;
+}
+
+#cut_button {
+    position: absolute;
+    right: 200px;
+}
+
+#copy_button {
+    position: absolute;
+    right: 250px;
+}
+
+#paste_button {
+    position: absolute;
+    right: 300px;
+}
+
+#add_folder_button {
+    position: absolute;
+    right: 100px;
+}
+
+#create_folder_popup {
+    position: absolute;
+    top: 58px;
+    right: 0px;
+    background-color: gray;
+    width: 500px;
+    display: none;
+    border: 2px solid black;
+    padding: 10px;
+}
+
+#folder_name_input {
+    width: 100%;
+    height: 50px;
+    font-family: 'Helvetica', Arial, Lucida Grande, sans-serif;
+    font-size: 16px;
+    padding-right: 5px;
+    padding-left: 5px;
+    margin-bottom:10px;
+}
+
+#create_folder_popup .button {
+    color: white;
+    padding: 16px 20px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom:10px;
+    opacity: 0.8;
+}
+
+#create_folder_popup input[type=text] {
+    width: 100%;
+    padding: 15px;
+    margin: 5px 0 22px 0;
+    border: none;
+    background-color: #ddd;
+}
+
+#create_folder_popup input[type=text]:focus {
+    background: #f1f1f1;
+    outline: none;
+}
+
+#create_folder_popup .cancel {
+  background-color: red;
+}
+
+#create_folder_popup .open {
+    background-color: #4CAF50;
+}
+
+#create_folder_popup .button:hover, .open-button:hover {
+  opacity: 1;
+}
+
+#create_folder_popup .button:disabled, .open-button:disabled {
+    opacity: 0.5;
+}
+
+/*
+tr:nth-child(even):hover {
+    background-color: yellow;
+    color: rgb(32, 41, 50);
+}*/

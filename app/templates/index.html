@@ -1,0 +1,144 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}EPD Docs{% endblock %}
+
+{% block styles %}
+    {{super()}}
+    <link href="{{ url_for('.static', filename='css/main.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+{% endblock %}
+
+{% block head %}
+    {{super()}}
+
+    <script src="{{ url_for('.static', filename='script/jquery-1.12.4.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('.static', filename='script/logic_script.js') }}"> </script>
+    <script type="text/javascript" src="{{ url_for('.static', filename='script/viewer_script.js') }}" > </script>
+    <script type="text/javascript" src="{{ url_for('.static', filename='script/http_script.js') }}"> </script>
+
+    <script type="text/javascript">
+        window.onload = load_folder_table;
+
+        $('#folder_table tr').hover(function() {
+            $(this).addClass('hover');
+        }, function() {
+            $(this).removeClass('hover');
+        });
+
+        $("#upload_files_button").change(function(){
+            alert("The text has been changed.");
+        });
+
+        $(document).ready(function(){
+            $("#upload_files_button").change(function(e) {
+                uploadButton.click();
+            });
+        });
+
+        $(function() {
+            $('#upload_file_btn').click(function() {
+                upload_file();
+            });
+        });
+    </script>
+
+{% endblock %}
+
+{% block navbar %}
+  <!--  <div class="navbar navbar-inverse" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle"
+data-toggle="collapse" data-target=".navbar-collapse">
+<span class="sr-only">Toggle navigation</span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+</button>
+                <a class="navbar-brand" href="/">Flasky</a>
+            </div>
+
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="/">Home</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    -->
+{% endblock %}
+
+
+
+{% block content %}
+
+    <div id="control_line">
+        <form action="" method="post" name="login">
+            <div id="search_container">
+                {{form.search(id='search_input', placeholder='Search')}}
+                 <img src="{{ url_for('.static', filename='images/search.png') }}" id="search_img">
+            </div>
+        </form>
+
+        <div id="control_button_line" align="right">
+            <form id="upload_file" method=post enctype=multipart/form-data>
+                <fieldset>
+                    <label id="upload_files_button_image_label" class="files_button" for="upload_files_button">
+                        <input id="upload_files_button_image" class="files_button" type="image" src="{{ url_for('.static', filename='images/upload.png') }}" style="pointer-events: none" />
+                        <!--<img id="upload_files_button_image" class="files_button" src="{{ url_for('.static', filename='images/upload.png') }}" style="pointer-events: none"/>-->
+                    </label>
+                    <input id="upload_files_button" name="files" type="file" />
+                </fieldset>
+                <fieldset>
+                    <button id="upload_file_btn" type="button" style="display: none">Upload</button>
+                </fieldset>
+            </form>
+
+            <input class="files_button" title="Выгрузить файл" type="image" src="{{ url_for('.static', filename='images/download.png') }}" onclick="download_files()" />
+            <input id="add_folder_button" title="Создать директорию" class="files_button" type="image" src="{{ url_for('.static', filename='images/add_folder.png') }}" onclick="open_create_folder_popup()" />
+            <input id="remove_button" title="Удалить" class="files_button hidden" type="image" src="{{ url_for('.static', filename='images/remove_icon.png') }}" onclick="remove()" />
+            <input id="copy_button" title="Скопировать" class="files_button hidden" type="image" src="{{ url_for('.static', filename='images/copy_icon.png') }}" onclick="copy()" />
+            <input id="cut_button" title="Вырезать" class="files_button hidden" type="image" src="{{ url_for('.static', filename='images/cut_icon.png') }}" onclick="cut()" />
+            <input id="paste_button" title="Вставить" class="files_button hidden" type="image" src="{{ url_for('.static', filename='images/paste_icon.png') }}" onclick="paste()" />
+            <!--<button class="btn active" onclick="listView()"><i class="fa fa-bars"></i> List</button>
+            <button class="btn" onclick="gridView()"><i class="fa fa-th-large"></i> Grid</button>-->
+        </div>
+
+
+<!--
+        <div id="control_button_line" align="right">
+            <button class="btn active" onclick="listView()"><i class="fa fa-bars"></i> List</button>
+            <button class="btn" onclick="gridView()"><i class="fa fa-th-large"></i> Grid</button>
+        </div>
+
+        <form method=post enctype=multipart/form-data>
+            <input type=file name=file>
+            <input type=submit value=Upload>
+        </form>
+-->
+    </div>
+
+    <div class="form-popup" id="create_folder_popup">
+        <input id="folder_name_input" type="text" onkeyup="check_name(this)">
+
+        <button id="create_folder_button" type="submit" class="button open" onclick="create_folder()">Создать</button>
+        <button type="button" class="button cancel" onclick="close_create_folder_popup()">Отмена</button>
+    </div>
+
+    <div id="folder_div">
+        <table id="folder_table">
+            <tr id="folder_table_header_tr">
+                <th id="name_cell" onClick="sort_folder_table(1)">Имя</th>
+                <th id="type_cell" onClick="sort_folder_table(2)">Тип</th>
+                <th id="size_cell" onClick="sort_folder_table(3)">Размер</th>
+                <th id="last_modification_cell" onClick="sort_folder_table(4)">Дата изменения</th>
+            </tr>
+            <tr id="folder_table_header_tr" ondblclick="open_directory(this)">
+                <td class="dir_item" colspan="4"><img class="prev_dir_icon" src="{{ url_for('.static', filename='images/prev_dir.png') }}" /><b>Предыдущая папка</b></td>
+            </tr>
+
+
+        </table>
+    </div>
+
+{% endblock %}

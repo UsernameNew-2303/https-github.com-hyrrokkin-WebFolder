@@ -1,0 +1,518 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<!--
+        {%- for item in folder_list recursive %}
+            <div class="row">
+                <div style="background-color:#aaa;">
+                    <a class="list_item" href="{{ url_for('download_file', path=item) }}">{{ item }}</a>
+                    <a class="list_item" onClick="list_dir(this)" > {{ item['path'] }} </a>
+                </div>
+            </div>
+        {%- endfor %}-->
+</body>
+</html>
+
+var sort_direction = 1;
+        /*var selected_rows = [];*/
+
+        function clear_selection() {
+            for (var i = selected_rows.length - 1; i >= 0 ; i--) {
+                selected_rows[i].classList.remove("selected_dir_row");
+                selected_rows.pop();
+            }
+        }
+
+        function download_files() {
+            var download_files = [];
+            var request;
+            var download_files_count = 0;
+
+            for (var i = 0; i < selected_rows.length; i++) {
+                download_files.push({name: selected_rows[i].cells[0].innerText, type: selected_rows[i].cells[1].innerText});
+            }
+
+            /*request = $.ajax({
+                url: '/download',
+                type: 'POST',
+                data: JSON.stringify(download_files)
+            }).done(function (path_files){
+                alert(JSON.parse(path_files));
+            }).fail(function() {
+                alert(0);
+            });*/
+
+            $.post('/get_full_path', {
+                files: JSON.stringify(download_files)
+            }).done(function(path_files) {
+                /*alert(JSON.parse(path_files))*/
+
+                var rest_req = JSON.parse(path_files);
+
+                var link = document.createElement("a");
+                link.download = rest_req['name'];
+                link.href = '/download/' + rest_req['path'];
+                document.body.appendChild(link)
+                link.click();
+
+                $.post('/get_max_element_for_zip', {
+                    files: JSON.stringify(download_files)
+                }).done(function(max_element) {
+                    download_files_count = JSON.parse(max_element)
+                    alert(download_files_count);
+                });
+
+
+
+                clear_selection();
+
+
+
+                /*var link = document.createElement('a');
+                link.setAttribute('href', {{ url_for('download_file', path=item) }});
+                link.setAttribute('download', 'download');
+                onload=link.click();*/
+            }).fail(function() {
+                alert("Что-то пошло не так");
+            });
+        }
+
+        function prevDir() {
+            open_directory(-1);
+        }
+
+        function open_directory(item) {
+            var post_send;
+
+            if (item == -1) {
+                post_send = "prev";
+            } else {
+                if ((item.cells[1].innerHTML == 'Папка с файлами') || (item.cells[2].innerHTML == '-')) {
+                    post_send = item.cells[0].innerText;
+                } else {
+                    return;
+                }
+            }
+
+            var rowItem;
+            var name_cell;
+            var type_cell;
+            var size_cell;
+            var last_modified_cell;
+            var image;
+
+            selected_rows = [];
+
+            $.post('/view_dir', {
+                path_dir: post_send
+            }).done(function(JSON_folder_list) {
+                clear_folder_list();
+
+                var rest_folder_list = JSON.parse(JSON_folder_list);
+                var items_table = document.getElementById("folder_table");
+
+                for (var i = 0; i < rest_folder_list.length; i++) {
+                    rowItem = items_table.insertRow(i + 2);
+
+                    rowItem.setAttribute("class", "dir_item");
+                    rowItem.setAttribute("onclick", "table_row_select(this)");
+                    rowItem.setAttribute("ondblclick", "open_directory(this)");
+
+                    name_cell = rowItem.insertCell(0);
+                    type_cell = rowItem.insertCell(1);
+                    size_cell = rowItem.insertCell(2);
+                    last_modified_cell = rowItem.insertCell(3);
+
+                    if (rest_folder_list[i]['type'] == 'dir') {
+                        imgage = document.createElement("img");
+                        imgage.setAttribute("src", "{{ url_for('.static', filename='images/dir_icon.png') }}");
+                        imgage.setAttribute("class", "dir_item_icon");
+
+                        name_cell.appendChild(imgage);
+
+                        name_cell.innerHTML = name_cell.innerHTML + rest_folder_list[i]['name'];
+
+                        type_cell.innerHTML = 'Папка с файлами';
+                        size_cell.innerHTML = '-';
+                    } else {
+                        imgage = document.createElement("img");
+                        imgage.setAttribute("src", "{{ url_for('.static', filename='images/file_icon2.png') }}");
+                        imgage.setAttribute("class", "file_item_icon");
+
+                        name_cell.appendChild(imgage);
+
+                        name_cell.innerHTML = name_cell.innerHTML + rest_folder_list[i]['name'];
+
+                        type_cell.innerHTML = rest_folder_list[i]['type'];
+                        size_cell.innerHTML = rest_folder_list[i]['size'] + ' КБайт';
+                    }
+
+                    size_cell.setAttribute("align", "right");
+
+                    last_modified_cell.innerHTML = rest_folder_list[i]['last_modified'];
+
+                        /*rowItem.setAttribute("class", "dir_item_icon");
+                        rowItem.setAttribute("onclick", "table_row_select(this)");
+                        rowItem.setAttribute("ondblclick", "open_directory(this)");*/
+
+                        /*alert(rowItem);*/
+
+
+                        /*var rowDiv = document.createElement("div");
+                        rowDiv.className = 'row';
+                        container.appendChild(rowDiv);
+
+                        var tmp_row_div = document.createElement("div");
+                        tmp_row_div.style.cssText = 'background-color:#aaa;';
+                        rowDiv.appendChild(tmp_row_div);
+
+                        var new_item = document.createElement("a");
+                        new_item.innerHTML = '<a class="list_item" onClick="list_dir(this)">'.concat(folder_list[i], '</a>');
+                        tmp_row_div.appendChild(new_item);*/
+                }
+            }).fail(function() {
+                alert(0)
+            });
+        }
+
+        $('#folder_table tr').hover(function() {
+            $(this).addClass('hover');
+        }, function() {
+            $(this).removeClass('hover');
+        });
+
+        function table_row_select(row) {
+            var selected = false;
+            var selected_index = -1;
+
+            var i;
+
+            for (i = 0; i < selected_rows.length; i++) {
+                if (selected_rows[i] == row) {
+                    selected = true;
+                    selected_index = i;
+
+                    break;
+                }
+            }
+
+            if (selected) {
+                selected_rows.splice(selected_index, 1);
+                row.classList.remove("selected_dir_row");
+
+            } else {
+                selected_rows.push(row);
+                row.classList.add("selected_dir_row");
+            }
+        }
+
+        function parseDate(string_date) {
+            var day = string_date.split('.')[0];
+            var month = string_date.split('.')[1];
+            var year = string_date.split('.')[2].split(' ')[0];
+            var hours = string_date.split(' ')[1].split(':')[0];
+            var minutes = string_date.split(' ')[1].split(':')[1];
+
+            return new Date(year, month, day, hours, minutes, 0, 0);
+        }
+
+        function sortTable(id_col) {
+            var table;
+            var rows;
+            var switching;
+            var i;
+            var x;
+            var y;
+            var shouldSwitch;
+            var header_cells;
+
+            var sort_img = document.getElementById("sort_img_id");
+
+            if (sort_img != null) {
+                sort_img.parentNode.removeChild(sort_img);
+            }
+
+            table = document.getElementById("folder_table");
+            switching = true;
+
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+
+                for (i = 2; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("TD")[id_col];
+                    y = rows[i + 1].getElementsByTagName("TD")[id_col];
+
+                    if (sort_direction == 0) {
+                        if (id_col == 3) {
+                            if (parseDate(x.innerHTML.toLowerCase()).getTime() > parseDate(y.innerHTML.toLowerCase()).getTime()) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        } else {
+                            if(id_col == 2) {
+                                if((x.innerHTML.toLowerCase() != '-') && (y.innerHTML.toLowerCase() == '-')) {
+                                    shouldSwitch = true;
+                                    break;
+                                } else {
+                                    if ((x.innerHTML.toLowerCase() != '-') && (y.innerHTML.toLowerCase() != '-')) {
+                                        if (parseInt(x.innerHTML.toLowerCase().split(' кбайт')[0]) > parseInt(y.innerHTML.toLowerCase().split(' кбайт')[0])) {
+                                            shouldSwitch = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            } else {
+                                if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                                    shouldSwitch = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (sort_direction == 1) {
+                        if (id_col == 3) {
+                            if (parseDate(x.innerHTML.toLowerCase()).getTime() < parseDate(y.innerHTML.toLowerCase()).getTime()) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        } else {
+                            if(id_col == 2) {
+                                if((x.innerHTML.toLowerCase() == '-') && (y.innerHTML.toLowerCase() != '-')) {
+                                    shouldSwitch = true;
+                                    break;
+                                } else {
+                                    if ((x.innerHTML.toLowerCase() != '-') && (y.innerHTML.toLowerCase() != '-')) {
+                                        if (parseInt(x.innerHTML.toLowerCase().split(' кбайт')[0]) < parseInt(y.innerHTML.toLowerCase().split(' кбайт')[0])) {
+                                            shouldSwitch = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            } else {
+                                if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                                    shouldSwitch = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
+            }
+
+            switch(id_col) {
+                case 0:
+                    var name_cell = document.getElementById("name_cell");
+                    sort_img = document.createElement("img");
+
+                    if (sort_direction == 0) {
+                        sort_img.setAttribute("src", "{{ url_for('.static', filename='images/sort_up.png') }}");
+                    } else {
+                        sort_img.setAttribute("src", "{{ url_for('.static', filename='images/sort_down.png') }}");
+                    }
+
+                    sort_img.setAttribute("id", "sort_img_id");
+                    sort_img.setAttribute("class", "sort_icon");
+
+                    name_cell.appendChild(sort_img);
+                    break;
+
+                case 1:
+                    var name_cell = document.getElementById("type_cell");
+                    sort_img = document.createElement("img");
+
+                    if (sort_direction == 0) {
+                        sort_img.setAttribute("src", "{{ url_for('.static', filename='images/sort_up.png') }}");
+                    } else {
+                        sort_img.setAttribute("src", "{{ url_for('.static', filename='images/sort_down.png') }}");
+                    }
+
+                    sort_img.setAttribute("id", "sort_img_id");
+                    sort_img.setAttribute("class", "sort_icon");
+
+                    name_cell.appendChild(sort_img);
+                    break;
+
+                case 2:
+                    var name_cell = document.getElementById("size_cell");
+                    sort_img = document.createElement("img");
+
+                    if (sort_direction == 0) {
+                        sort_img.setAttribute("src", "{{ url_for('.static', filename='images/sort_up.png') }}");
+                    } else {
+                        sort_img.setAttribute("src", "{{ url_for('.static', filename='images/sort_down.png') }}");
+                    }
+
+                    sort_img.setAttribute("id", "sort_img_id");
+                    sort_img.setAttribute("class", "sort_icon");
+
+                    name_cell.appendChild(sort_img);
+                    break;
+
+                case 3:
+                    var name_cell = document.getElementById("date_modified_cell");
+                    sort_img = document.createElement("img");
+
+                    if (sort_direction == 0) {
+                        sort_img.setAttribute("src", "{{ url_for('.static', filename='images/sort_up.png') }}");
+                    } else {
+                        sort_img.setAttribute("src", "{{ url_for('.static', filename='images/sort_down.png') }}");
+                    }
+
+                    sort_img.setAttribute("id", "sort_img_id");
+                    sort_img.setAttribute("class", "sort_icon");
+
+                    name_cell.appendChild(sort_img);
+                    break;
+
+                default:
+                break;
+            }
+
+            if (sort_direction == 0) {
+                sort_direction = 1;
+
+                return;
+            }
+
+            if (sort_direction == 1) {
+                sort_direction = 0;
+
+                return;
+            }
+        }
+
+        function listView() {
+            var container = document.getElementById("control_button_line");
+            var btns = container.getElementsByClassName("btn");
+            for (var i = 0; i < btns.length; i++) {
+                btns[i].addEventListener("click", function() {
+                    var current = document.getElementsByClassName("active");
+                    current[0].className = current[0].className.replace(" active", "");
+                    this.className += " active";
+                });
+            }
+        }
+
+        function gridView() {
+            var container = document.getElementById("control_button_line");
+            var btns = container.getElementsByClassName("btn");
+            for (var i = 0; i < btns.length; i++) {
+                btns[i].addEventListener("click", function() {
+                    var current = document.getElementsByClassName("active");
+                    current[0].className = current[0].className.replace(" active", "");
+                    this.className += " active";
+                });
+            }
+        }
+
+        function clear_folder_list() {
+            var folder_table = document.getElementById("folder_table");
+
+            for (var i = folder_table.rows.length - 1; i > 1; i--) {
+                folder_table.deleteRow(i);
+            }
+        }
+
+        function list_dir(obj) {
+            alert(obj.innerHTML);
+            $.post('/view_dir', {
+                path_dir: obj.innerHTML
+            }).done(function(JSON_folder_list) {
+                clear_folder_list();
+
+                var folder_list = JSON.parse(JSON_folder_list);
+
+                var container = document.getElementById("folder_div");
+
+                for (var i = 0; i < folder_list.length; i++) {
+                    var rowDiv = document.createElement("div");
+                    rowDiv.className = 'row';
+                    container.appendChild(rowDiv);
+
+                    var tmp_row_div = document.createElement("div");
+                    tmp_row_div.style.cssText = 'background-color:#aaa;';
+                    rowDiv.appendChild(tmp_row_div);
+
+                    var new_item = document.createElement("a");
+                    new_item.innerHTML = '<a class="list_item" onClick="list_dir(this)">'.concat(folder_list[i], '</a>');
+                    tmp_row_div.appendChild(new_item);
+                }
+
+                /*alert(1);
+                clear_folder_list();
+
+
+                //container.innerHTML = '<div id="folder_div"></div>';
+
+                */
+                //alert(dir_item[0]);
+
+                //for (item in dir_item) {
+                    /*var rowDiv = document.createElement("div");
+                    rowDiv.innerHTML = '<div class="row"></div>';
+                    container.appendChild(rowDiv);*/
+
+                    /*var new_item = document.createElement("a");
+                    new_item.innerHTML = '<a class="list_item" onClick="list_dir(this)" >' + new_item + ' </a>';
+                    rowDiv.appendChild(new_item);*/
+                //}
+
+                //alert(container.innerHTML);
+
+                /*while(container.firstChild){
+                    div.removeChild(div.firstChild);
+                }*/
+            }).fail(function() {
+                alert(0)
+            });
+        }
+
+
+{%- for item in folder_list recursive %}
+                <tr class="dir_item" onclick="table_row_select(this)" ondblclick="open_directory(this)">
+                    {% if 'dir' in item['type'] %}
+                        <td><img class="dir_item_icon" src="{{ url_for('.static', filename='images/dir_icon.png') }}" />{{ item['name'] }}</td>
+                        <td>Папка с файлами</td>
+                        <td>-</td>
+                    {% else %}
+                        <td><img class="file_item_icon" src="{{ url_for('.static', filename='images/file_icon2.png') }}" />{{ item['name'] }}</td>
+                        <td>{{ item['type'] }}</td>
+                        <td align="right">{{ item['size'] }} КБайт</td>
+                    {% endif %}
+
+                    <td>{{ item['last_modified'] }}</td>
+                </tr>
+            {%- endfor %}
+
+
+$(document).ready(function(){
+            $('input[type="file"]').change(function(e) {
+                var fileName = e.target.files[0].val();
+                alert('The file "' + fileName +  '" has been selected.');
+
+                var form_data = new FormData($('#upload-file')[0])
+
+                alert('The file "' + form_data +  '" has been selected.');
+
+                $.post('/upload', {
+                    files: new FormData($('#upload-file')[0])
+                }).done(function(path_files) {
+
+                }).fail(function() {
+                    alert("Что-то пошло не так");
+                });
+            });
+        });
